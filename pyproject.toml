@@ -1,0 +1,21 @@
+[project]
+name = "dhis"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.12"
+dependencies = [
+    "contextily>=1.7.0",
+    "geopandas>=1.1.2",
+    "levenshtein>=0.27.3",
+    "matplotlib>=3.10.8",
+    "numdifftools>=0.9.42",
+    "openpyxl>=3.1.5",
+    "pandas>=2.3.3",
+    "pyreadstat>=1.2.8",
+    "rasterio>=1.4.4",
+    "rasterstats>=0.20.0",
+    "scikit-learn>=1.8.0",
+    "seaborn>=0.13.2",
+    "statsmodels>=0.14.6",
+    "tqdm>=4.67.1",
+]

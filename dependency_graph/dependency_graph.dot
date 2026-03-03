@@ -1,0 +1,107 @@
+digraph DependencyGraph {
+    // Graph settings
+    rankdir=TB; // Top to Bottom makes the graph taller
+    ratio=1.414; // DIN A4 aspect ratio (sqrt(2))
+    size="8.3,11.7!"; // Exact dimensions of DIN A4 in inches (forces ratio)
+    margin=0.5; // Margins
+    
+    node [shape=box, style=rounded];
+    graph [fontname="Arial", fontsize=12];
+    node [fontname="Arial", fontsize=10];
+    edge [fontname="Arial", fontsize=9];
+    
+    // Define node colors by type
+    node [style="rounded,filled"];
+    
+    // Source data files (cyan)
+    node [fillcolor="#E0FFFF", shape=folder];
+    dhs_raw [label="DHS Raw\nData/Shapes"];
+    pma_household [label="PMA Household\n& GPS Data"];
+    dhis2_raw [label="DHIS2 CSVs\n(data/dhis2/)"];
+    worldpop_rasters [label="WorldPop Rasters\n(eth_pop_*_100m.tif)"];
+    admin_geojson [label="Admin Boundaries\n(GeoJSON)"];
+    un_pop [label="UN Population\n(un_pop.csv)"];
+    un_fertility [label="UN Fertility\n(un_fertility.csv)"];
+    metaanalysis_data [label="Metaanalysis\n(metaanalysis.csv)"];
+    
+    // Compute nodes (green)
+    node [fillcolor="#90EE90", shape=box];
+    compute_population_fractions_un [label="compute_population_\nfractions_un.py"];
+    compute_total_populations [label="compute_total_\npopulations.py"];
+    compute_dhis2_estimates [label="compute_dhis2_\nestimates.py"];
+    compute_dhis2_coverage_estimates [label="compute_dhis2_coverage_\nestimates.py"];
+    compute_dhs_estimates [label="compute_dhs_\nestimates.py"];
+    compute_pma_estimates [label="compute_pma_\nestimates.py"];
+    compute_calibrated_coverage [label="compute_calibrated_\ncoverage.py"];
+    
+    // Compare nodes (lightblue)
+    node [fillcolor="#ADD8E6", shape=box];
+    compare_survey_dhis2_coverage [label="compare_survey_\ndhis2_coverage.py"];
+    
+    // Plot nodes (pink)
+    node [fillcolor="#FFB6C1", shape=box];
+    plot_calibrated_coverage_maps [label="plot_calibrated_\ncoverage_maps.py"];
+    
+    // Estimate files (gold)
+    node [fillcolor="#FFD700", shape=ellipse];
+    population_fractions_un [label="population_\nfractions_un.csv"];
+    populations_worldpop_geojson [label="populations_worldpop_\ngeojson.csv"];
+    
+    dhis2_yearly_all_gps [label="dhis2_yearly_*\n_all_indicators_gps.csv"];
+    dhis2_coverage_estimates_gps [label="dhis2_coverage_\nestimates_*_gps.csv"];
+    
+    dhs_survey_estimates [label="dhs_*_estimates.csv"];
+    pma_survey_estimates [label="pma_*_estimates.csv"];
+    
+    calibrated_coverage_geojson [label="*_calibrated_coverage_\ngeojson.csv"];
+    
+    dhs_dhis2_calibration_params [label="dhs_dhis2_\ncalibration_params.json"];
+    
+    // Grouping source nodes to run parallel at the top might be helpful for TB aspect
+    {rank=same; un_pop un_fertility worldpop_rasters dhis2_raw dhs_raw pma_household metaanalysis_data admin_geojson}
+    
+    // === SOURCE DATA TO COMPUTE SCRIPTS ===
+    
+    un_pop -> compute_population_fractions_un [label="reads"];
+    un_fertility -> compute_population_fractions_un [label="reads"];
+    compute_population_fractions_un -> population_fractions_un [label="writes"];
+    
+    worldpop_rasters -> compute_total_populations [label="reads"];
+    admin_geojson -> compute_total_populations [label="reads"];
+    compute_total_populations -> populations_worldpop_geojson [label="writes"];
+    
+    dhis2_raw -> compute_dhis2_estimates [label="reads"];
+    compute_dhis2_estimates -> dhis2_yearly_all_gps [label="writes"];
+    
+    dhs_raw -> compute_dhs_estimates [label="reads"];
+    admin_geojson -> compute_dhs_estimates [label="reads"];
+    compute_dhs_estimates -> dhs_survey_estimates [label="writes"];
+    
+    pma_household -> compute_pma_estimates [label="reads"];
+    admin_geojson -> compute_pma_estimates [label="reads"];
+    compute_pma_estimates -> pma_survey_estimates [label="writes"];
+    
+    // === COMPUTE SCRIPTS USING ESTIMATES ===
+    
+    populations_worldpop_geojson -> compute_dhis2_coverage_estimates [label="reads"];
+    dhis2_yearly_all_gps -> compute_dhis2_coverage_estimates [label="reads"];
+    population_fractions_un -> compute_dhis2_coverage_estimates [label="reads"];
+    compute_dhis2_coverage_estimates -> dhis2_coverage_estimates_gps [label="writes"];
+    
+    dhis2_coverage_estimates_gps -> compute_calibrated_coverage [label="reads"];
+    dhs_dhis2_calibration_params -> compute_calibrated_coverage [label="reads"];
+    compute_calibrated_coverage -> calibrated_coverage_geojson [label="writes"];
+    
+    // === COMPARE SCRIPTS ===
+    
+    dhs_survey_estimates -> compare_survey_dhis2_coverage [label="reads"];
+    pma_survey_estimates -> compare_survey_dhis2_coverage [label="reads"];
+    dhis2_coverage_estimates_gps -> compare_survey_dhis2_coverage [label="reads"];
+    metaanalysis_data -> compare_survey_dhis2_coverage [label="reads"];
+    compare_survey_dhis2_coverage -> dhs_dhis2_calibration_params [label="writes"];
+    
+    // === PLOT SCRIPTS ===
+    
+    calibrated_coverage_geojson -> plot_calibrated_coverage_maps [label="reads"];
+    admin_geojson -> plot_calibrated_coverage_maps [label="reads"];
+}

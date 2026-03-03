@@ -1,0 +1,45 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+.ruff_cache
+.uv-cache
+.DS_Store
+
+# Virtual environments
+.venv
+
+data/*
+figures/*
+estimates/*
+cache/*
+webapp/
+thesis/
+deprecated/
+logs/
+
+
+*.pdf
+*.svg
+*.png
+
+*.ipynb
+
+# These didn't make it into the final analysis (yet)
+compare_facility_dhis2_coverage.py
+compute_pma_facility_services.py
+compute_population_fractions.py
+print_dhs_2016_vars.py
+print_regional_coverages.py
+validate_admin_boundary_sums.py
+
+# Not relevant for the DHIS2 analysis
+plot_beta_densities.py
+summary.md
+
+# Not public yet
+replication.md
+results.md
